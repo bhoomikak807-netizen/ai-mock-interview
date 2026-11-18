@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Mock Interview Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07102a; --bg2:#0c1a3d; --card:#0f2050; --card2:#132a63; --line:#2a3f78;
+  --text:#eef2ff; --muted:#9fb0d9; --cyan:#22d3ee; --violet:#8b5cf6; --good:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --field:#0a1738; --soft:#cfd9f7; --hdr:#07102acc; --ovl:#07102af2; --rule:#1d2d5e; --sel:#0c2a4d; --avbg:#10265a; --glow:#1b2d6b55; --onacc:#04202a;
+  --r:16px;
+  --head:'Sora','Segoe UI',system-ui,sans-serif; --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);color:var(--text);line-height:1.55;min-height:100vh;
+  background:radial-gradient(900px 500px at 85% -10%,var(--glow),transparent 60%),var(--bg)}
+h1,h2,h3{font-family:var(--head);margin:0 0 .5rem;line-height:1.15}
+h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.6rem;font-weight:700}
+.accent{color:var(--cyan)}
+.sub,.hint{color:var(--muted);font-size:.92rem;margin:.2rem 0 1rem}
+.hint{margin-top:.8rem;font-size:.82rem}
+.lead{color:var(--muted);font-size:1.1rem;max-width:34em}
+.opt{color:var(--muted);font-weight:400}
+.sr{position:absolute;left:-9999px}
+
+/* header */
+.top{display:flex;align-items:center;gap:1.2rem;padding:.9rem clamp(1rem,4vw,2.5rem);border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--hdr);backdrop-filter:blur(8px);z-index:5}
+.brand{font-family:var(--head);font-weight:700;display:flex;align-items:center;gap:.6rem;white-space:nowrap}
+.logo-bars{display:inline-flex;align-items:center;gap:2px;height:20px}
+.logo-bars i{width:4px;background:var(--cyan);border-radius:2px;display:block}
+.logo-bars i:nth-child(1){height:9px}.logo-bars i:nth-child(2){height:18px;background:var(--violet)}.logo-bars i:nth-child(3){height:13px}.logo-bars i:nth-child(4){height:20px;background:var(--violet)}
+.logo-bars.big{height:34px;gap:4px}.logo-bars.big i{width:7px}
+.logo-bars.big i:nth-child(1){height:14px}.logo-bars.big i:nth-child(2){height:30px}.logo-bars.big i:nth-child(3){height:20px}.logo-bars.big i:nth-child(4){height:34px}
+.stepper{display:flex;gap:.4rem;list-style:none;margin:0 auto;padding:0;flex-wrap:wrap;justify-content:center}
+.stepper li{font-size:.8rem;color:var(--muted);padding:.25rem .7rem;border:1px solid var(--line);border-radius:99px}
+.stepper li.done{color:var(--text);border-color:#3b5bb0}
+.stepper li.cur{background:var(--cyan);color:#04202a;border-color:var(--cyan);font-weight:600}
+
+/* layout */
+main{padding:clamp(1rem,3vw,2.5rem)}
+.screen{display:none;max-width:1100px;margin:0 auto}
+.screen.active{display:block}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:3rem;align-items:center;min-height:70vh}
+.panel{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:1.8rem}
+.panel.wide{max-width:860px;margin:0 auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* form controls */
+label{display:block;font-size:.88rem;font-weight:500;margin-bottom:1rem;color:var(--soft)}
+input,select,textarea{width:100%;margin-top:.35rem;padding:.7rem .85rem;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);font:inherit}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+textarea{resize:vertical}
+fieldset{border:0;padding:0;margin:0 0 1.2rem}
+legend{font-size:.88rem;font-weight:500;margin-bottom:.5rem;color:var(--soft);padding:0}
+legend small{color:var(--muted)}
+.check{display:flex;gap:.6rem;align-items:center}
+.check input{width:auto;margin:0}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem}
+.choice{margin:0;cursor:pointer}
+.choice input{position:absolute;opacity:0;width:0}
+.choice span{display:block;padding:.7rem .9rem;border:1px solid var(--line);border-radius:12px;background:var(--field);font-weight:500}
+.choice small{display:block;color:var(--muted);font-weight:400;font-size:.78rem}
+.choice input:checked+span{border-color:var(--cyan);background:var(--sel);box-shadow:inset 0 0 0 1px var(--cyan)}
+.choice input:focus-visible+span{outline:2px solid var(--cyan)}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.7rem}
+.chip{border:1px solid var(--line);background:var(--field);color:var(--text);padding:.35rem .8rem;border-radius:99px;cursor:pointer;font:inherit;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--violet);border-color:var(--violet);color:#fff}
+.addrow{display:flex;gap:.6rem}.addrow input{margin:0}
+.err{color:var(--bad);min-height:1.2em;margin:.2rem 0}
+
+/* buttons */
+button{font:inherit;cursor:pointer}
+.primary{background:linear-gradient(135deg,var(--violet),#6d5cf0);color:#fff;border:0;border-radius:12px;padding:.8rem 1.4rem;font-weight:600}
+.primary:hover{filter:brightness(1.1)}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:.75rem 1.2rem}
+.ghost:hover{border-color:var(--cyan)}
+.small{padding:.4rem .9rem;font-size:.85rem;border-radius:10px}
+.actions{display:flex;justify-content:space-between;gap:1rem;margin-top:1rem}
+#loginForm .primary{width:100%;margin-top:.4rem}
+
+/* waveform (the one animated moment) */
+.wave{display:flex;align-items:center;gap:5px;height:90px;margin-top:2.2rem}
+.wave i{flex:1;max-width:8px;border-radius:4px;background:linear-gradient(var(--cyan),var(--violet));height:20%;animation:pulse 1.4s ease-in-out infinite}
+.wave i:nth-child(3n){animation-delay:-.4s}.wave i:nth-child(3n+1){animation-delay:-.9s}.wave i:nth-child(5n){animation-delay:-.2s;height:60%}
+.wave.small{height:40px;margin:0 0 1rem;justify-content:center}
+@keyframes pulse{0%,100%{height:15%}50%{height:95%}}
+
+/* interview */
+.int-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.timer{font-family:var(--head);font-size:1.4rem;color:var(--cyan)}
+.bar{height:6px;background:var(--field);border-radius:9px;overflow:hidden;margin:.8rem 0 1.4rem}
+.bar div{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .4s}
+.qcard{display:flex;gap:1rem;align-items:flex-start;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:1.2rem;margin-bottom:1rem;flex-wrap:wrap}
+.avatar{width:56px;height:56px;border-radius:50%;background:var(--avbg);border:1px solid var(--cyan);display:grid;place-items:center;flex:none}
+.question{flex:1;min-width:220px;margin:0;font-size:1.15rem;font-weight:500}
+.int-foot{display:flex;align-items:center;gap:.8rem;margin-top:.8rem;flex-wrap:wrap}
+.spacer{flex:1}
+.mic{display:inline-flex;align-items:center;gap:.6rem;background:var(--field);border:1px solid var(--line);color:var(--text);padding:.65rem 1.1rem;border-radius:99px}
+.mic .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.mic[aria-pressed="true"]{border-color:var(--bad)}
+.mic[aria-pressed="true"] .dot{background:var(--bad);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* report */
+.score-top{display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:center;margin:1rem 0 1.5rem}
+.ring{--p:0;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--cyan) calc(var(--p)*1%),var(--field) 0)}
+.ring div{width:118px;height:118px;border-radius:50%;background:var(--card);display:grid;place-items:center;text-align:center}
+.ring b{font-family:var(--head);font-size:2.4rem;line-height:1}
+.ring span{font-size:.75rem;color:var(--muted)}
+.metric{margin-bottom:.7rem}
+.metric .row{display:flex;justify-content:space-between;font-size:.88rem}
+.metric .track{height:8px;background:var(--field);border-radius:9px;overflow:hidden;margin-top:.25rem}
+.metric .fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.4rem 0}
+.box{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:1rem}
+.box h3{font-size:1rem}
+.box ul{margin:.3rem 0 0;padding-left:1.1rem;color:var(--soft);font-size:.9rem}
+.good{color:var(--good)}.warnc{color:var(--warn)}.badc{color:var(--bad)}
+details{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem}
+summary{cursor:pointer;font-weight:500}
+details p{margin:.5rem 0;font-size:.9rem;color:var(--soft)}
+.tag{display:inline-block;font-size:.75rem;padding:.1rem .55rem;border-radius:99px;border:1px solid var(--line);margin:.1rem .2rem .1rem 0;color:var(--muted)}
+.tag.hit{border-color:var(--good);color:var(--good)}.tag.miss{border-color:var(--bad);color:var(--bad)}
+
+/* dashboard */
+.hist{display:flex;align-items:flex-end;gap:.6rem;height:180px;padding:1rem;background:var(--field);border:1px solid var(--line);border-radius:12px;overflow-x:auto;margin:1rem 0}
+.hist .b{flex:0 0 46px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:.7rem;color:var(--muted)}
+.hist .b div{width:100%;background:linear-gradient(var(--cyan),var(--violet));border-radius:6px 6px 0 0;min-height:4px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .4rem;border-bottom:1px solid var(--rule)}
+th{color:var(--muted);font-weight:500}
+
+.loading{position:fixed;inset:0;background:var(--ovl);display:grid;place-content:center;text-align:center;z-index:20}
+.loading[hidden]{display:none}
+
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr;gap:1.5rem;min-height:0}
+  .grid2,.cols{grid-template-columns:1fr}
+  .score-top{grid-template-columns:1fr;justify-items:center}
+  .stepper{display:none}
+  .top{justify-content:space-between}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* light theme */
+[data-theme="light"]{
+  --bg:#f3f6ff; --bg2:#e9efff; --card:#ffffff; --card2:#f0f4ff; --line:#c3cfee; --text:#0f1b3d; --muted:#4f5e88;
+  --cyan:#0e7490; --violet:#6240e0; --good:#047857; --warn:#a16207; --bad:#b91c1c;
+  --field:#f4f7ff; --soft:#233463; --hdr:#f3f6ffd9; --ovl:#f3f6fff2; --rule:#d4ddf5; --sel:#dff4fa; --avbg:#e3ebff; --glow:#c9d6ff66; --onacc:#ffffff;
+}
+[data-theme="light"] .stepper li.cur{color:var(--onacc)}
+[data-theme="light"] .wave i{background:linear-gradient(#0891b2,var(--violet))}
+
+[hidden]{display:none!important}
+.question{white-space:pre-wrap}
+input[type=file]{padding:.55rem}
+.int-right{display:flex;align-items:center;gap:1rem}
+.cam{width:132px;height:99px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#000;transform:scaleX(-1)}
+.micwrap{display:inline-flex;align-items:center;gap:.8rem}
+.code-bar{display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem;flex-wrap:wrap}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9rem;line-height:1.5;tab-size:2;white-space:pre;overflow:auto;margin-top:0}
+.codeout{margin:.6rem 0 0;padding:.8rem 1rem;background:var(--field);border:1px solid var(--line);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;white-space:pre-wrap;color:var(--soft);min-height:3.2rem}
+.codeblock{margin:.3rem 0;padding:.8rem 1rem;background:var(--bg);border:1px solid var(--line);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;overflow:auto;white-space:pre}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+.focus{padding:.8rem 1rem;border:1px solid var(--warn);border-radius:12px;color:var(--soft);margin:1rem 0;font-size:.92rem}
+@media (max-width:820px){.two{grid-template-columns:1fr}.cam{width:96px;height:72px}}
+
+/* backend connection */
+[hidden]{display:none!important}
+.hint.ok{color:var(--good,#4ade80)}
+.hint.warn{color:var(--warn,#fbbf24)}
+#authSwitch{width:100%;margin-top:.5rem}
+
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="logo-bars"><i></i><i></i><i></i><i></i></span> MockMate AI</div>
+  <ol id="stepper" class="stepper" aria-label="Progress"></ol>
+  <button id="themeBtn" class="ghost small" type="button">Light mode</button>
+  <button id="navDash" class="ghost small" type="button">My progress</button>
+  <button id="navOut" class="ghost small" type="button" hidden>Log out</button>
+</header>
+
+<main>
+
+  <!-- 1. LOGIN -->
+  <section id="s-login" class="screen active">
+    <div class="hero">
+      <div class="hero-text">
+        <h1>Practice smart.<br>Improve <span class="accent">confidently.</span></h1>
+        <p class="lead">Tell us about your skills and the job you want. We'll run a mock interview built around it, score every answer, and show you what to work on next.</p>
+        <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <form id="loginForm" class="panel">
+        <h2 id="loginTitle">Create your account</h2>
+        <label id="nameRow">Full name<input id="uName" required placeholder="Priya Sharma" autocomplete="name"></label>
+        <label>Email<input id="uEmail" type="email" required placeholder="you@example.com" autocomplete="email"></label>
+        <label>Password<input id="uPass" type="password" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password"></label>
+        <p id="loginErr" class="err" role="alert"></p>
+        <button class="primary" type="submit" id="loginBtn">Create account</button>
+        <button class="ghost small" type="button" id="authSwitch">I already have an account</button>
+        <p class="hint" id="backendNote">Checking server...</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. PROFILE -->
+  <section id="s-profile" class="screen">
+    <form id="profileForm" class="panel wide">
+      <h2>First, tell us about you</h2>
+      <p class="sub">We use this to set the right level of questions.</p>
+
+      <div class="grid2">
+        <label>Highest education
+          <select id="pEdu">
+            <option>Diploma</option><option selected>Bachelor's degree</option><option>Master's degree</option><option>Self-taught / Bootcamp</option><option>PhD</option>
+          </select>
+        </label>
+        <label>Years of work experience
+          <input id="pYears" type="number" min="0" max="40" value="0">
+        </label>
+      </div>
+
+      <fieldset>
+        <legend>Your experience level</legend>
+        <div class="choices" id="pLevel">
+          <label class="choice"><input type="radio" name="level" value="Fresher" checked><span>Fresher<small>No full-time job yet</small></span></label>
+          <label class="choice"><input type="radio" name="level" value="Junior"><span>Junior<small>0–2 years</small></span></label>
+          <label class="choice"><input type="radio" name="level" value="Mid"><span>Mid-level<small>2–5 years</small></span></label>
+          <label class="choice"><input type="radio" name="level" value="Senior"><span>Senior<small>5+ years</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Have you attended interviews before?</legend>
+        <div class="choices" id="pPrior">
+          <label class="choice"><input type="radio" name="prior" value="Never" checked><span>Never</span></label>
+          <label class="choice"><input type="radio" name="prior" value="A few"><span>A few</span></label>
+          <label class="choice"><input type="radio" name="prior" value="Many"><span>Many</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Your skills <small id="skillCount">(0 selected)</small></legend>
+        <div id="skillChips" class="chips"></div>
+        <div class="addrow">
+          <input id="customSkill" placeholder="Add another skill and press Enter">
+          <button type="button" id="addSkill" class="ghost small">Add</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Upload your resume <span class="opt">(optional)</span></legend>
+        <input type="file" id="resumeFile" accept=".txt,.md,.pdf">
+        <p class="hint" id="resumeNote">PDF or text file. It stays in your browser. We use it to find your skills and ask about your projects.</p>
+      </fieldset>
+
+      <label>Projects or work experience <span class="opt">(optional, one per line)</span>
+        <textarea id="pProjects" rows="3" placeholder="e.g. Built a placement portal with React and Node.js; interned at a fintech startup."></textarea>
+      </label>
+
+      <p id="profileErr" class="err" role="alert"></p>
+      <div class="actions">
+        <button type="button" class="ghost" data-go="login">Back</button>
+        <button class="primary" type="submit">Next: choose company and role</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 3. TARGET -->
+  <section id="s-target" class="screen">
+    <form id="targetForm" class="panel wide">
+      <h2>What are you preparing for?</h2>
+      <p class="sub">Questions will be tailored to this company and role.</p>
+
+      <div class="grid2">
+        <label>Company
+          <input id="tCompany" list="companies" required placeholder="e.g. Google, TCS, a startup">
+          <datalist id="companies">
+            <option>Google</option><option>Microsoft</option><option>Amazon</option><option>Infosys</option><option>TCS</option><option>Wipro</option><option>Accenture</option><option>Flipkart</option><option>Zoho</option><option>OpenAI</option><option>Startup</option>
+          </datalist>
+        </label>
+        <label>Role
+          <select id="tRole"></select>
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label>Interview type
+          <select id="tType"><option>Mixed</option><option>Technical</option><option>Behavioral / HR</option></select>
+        </label>
+        <label>Difficulty
+          <select id="tDiff"><option value="auto">Auto (based on my profile)</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label>Number of questions
+          <select id="tCount"><option>5</option><option selected>7</option><option>10</option></select>
+        </label>
+        <label>Answer by
+          <select id="tMode"><option value="text">Typing</option><option value="voice">Voice (Chrome / Edge)</option></select>
+        </label>
+      </div>
+
+      <label class="check"><input type="checkbox" id="tSpeak" checked> Read each question aloud</label>
+      <label class="check"><input type="checkbox" id="tCode" checked> Include a coding question (JavaScript, with tests)</label>
+      <label class="check"><input type="checkbox" id="tCam"> Show my camera during the interview (never recorded or uploaded)</label>
+
+      <div class="actions">
+        <button type="button" class="ghost" data-go="profile">Back</button>
+        <button class="primary" type="submit">Start interview</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 4. INTERVIEW -->
+  <section id="s-interview" class="screen">
+    <div class="panel wide">
+      <div class="int-head">
+        <div><strong id="iMeta"></strong><div class="sub" id="iCat"></div></div>
+        <div class="int-right">
+          <video id="cam" class="cam" autoplay muted playsinline hidden></video>
+          <div class="timer" id="iTimer" aria-live="off">0:00</div>
+        </div>
+      </div>
+      <div class="bar"><div id="iBar"></div></div>
+
+      <div class="qcard">
+        <div class="avatar" aria-hidden="true"><span class="logo-bars big"><i></i><i></i><i></i><i></i></span></div>
+        <p id="iQuestion" class="question"></p>
+        <button type="button" class="ghost small" id="replay">Hear again</button>
+      </div>
+
+      <div id="textBox">
+        <label class="sr" for="iAnswer">Your answer</label>
+        <textarea id="iAnswer" rows="7" placeholder="Type your answer here. Aim for 60 to 150 words."></textarea>
+      </div>
+
+      <div id="codeBox" hidden>
+        <div class="code-bar">
+          <strong id="codeTitle"></strong><span class="sub">JavaScript</span>
+          <div class="spacer"></div>
+          <button type="button" class="ghost small" id="codeReset">Reset</button>
+          <button type="button" class="primary small" id="codeRun">Run tests</button>
+        </div>
+        <textarea id="code" class="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code editor" rows="14"></textarea>
+        <pre id="codeOut" class="codeout" aria-live="polite"></pre>
+        <p class="hint">Tab inserts spaces. Ctrl/Cmd + Enter runs the tests. Your code runs only in your browser.</p>
+      </div>
+
+      <div class="int-foot">
+        <span id="micWrap" class="micwrap">
+          <button type="button" id="micBtn" class="mic" aria-pressed="false"><span class="dot"></span><span id="micLabel">Start speaking</span></button>
+          <span id="wordCount" class="sub">0 words</span>
+        </span>
+        <div class="spacer"></div>
+        <button type="button" class="ghost" id="skipBtn">Skip</button>
+        <button type="button" class="primary" id="nextBtn">Next question</button>
+      </div>
+      <p id="micNote" class="hint"></p>
+    </div>
+  </section>
+
+  <!-- 5. REPORT -->
+  <section id="s-report" class="screen">
+    <div id="reportBox" class="panel wide"></div>
+  </section>
+
+  <!-- 6. DASHBOARD -->
+  <section id="s-dash" class="screen">
+    <div class="panel wide">
+      <h2>Your progress</h2>
+      <div id="dashBox"></div>
+      <div class="actions">
+        <button type="button" class="ghost" id="clearHist">Clear history</button>
+        <button type="button" class="primary" data-go="target">Practice again</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="loading" class="loading" hidden><div class="wave small"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>Preparing your interview...</p></div>
+
+<script>
+/* =========================================================
+   MockMate AI - front end logic (vanilla JavaScript)
+   Flow: login -> profile -> company/role -> interview -> report
+   ========================================================= */
+
+/* ---------- Backend connection ----------
+   The site talks to the MockMate server (server/server.js) for accounts, questions,
+   scoring, code running and saved history.
+   - Opened through the server (http://localhost:3000): same origin, nothing to configure.
+   - Opened as a plain file (double-click the .html): it connects to http://localhost:3000.
+   - If the server isn't reachable, the app still works offline using the built-in
+     question bank and your browser's localStorage.
+   To use another server, set window.MOCKMATE_API = "https://your-server" before this script. */
+const API_BASE = window.MOCKMATE_API || (location.protocol.startsWith("http") ? "" : "http://localhost:3000");
+let online = false;
+let token = null;
+try{ token = localStorage.getItem("mm_token"); }catch(e){}
+
+async function api(path, method = "GET", body){
+  const headers = {};
+  if(body !== undefined) headers["Content-Type"] = "application/json";
+  if(token) headers.Authorization = "Bearer " + token;
+  const r = await fetch(API_BASE + path, {method, headers, body: body !== undefined ? JSON.stringify(body) : undefined});
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(!r.ok){
+    const err = new Error(j.error || "Request failed (" + r.status + ")"); err.status = r.status; throw err;
+  }
+  return j;
+}
+function setToken(t){
+  token = t;
+  try{ t ? localStorage.setItem("mm_token", t) : localStorage.removeItem("mm_token"); }catch(e){}
+}
+async function checkBackend(){
+  try{
+    const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 2500);
+    const r = await fetch(API_BASE + "/api/health", {signal: ctrl.signal});
+    online = r.ok && (await r.json()).ok === true;
+  }catch(e){ online = false; }
+  return online;
+}
+
+/* ---------- Data ---------- */
+const SKILLS = ["HTML/CSS","JavaScript","TypeScript","React","Node.js","Python","Java","C++","SQL","MongoDB","Spring Boot","Data Structures","System Design","Machine Learning","Git","Docker","Kubernetes","AWS","Linux","Networking","REST APIs","Selenium","Figma","Excel","Power BI / Tableau","Communication","Leadership"];
+const ROLES = ["Software Engineer","Frontend Developer","Backend Developer","Full Stack Developer","Android Developer","Data Analyst","Data Scientist / ML Engineer","DevOps Engineer","Cloud Engineer","QA / Test Engineer","Cybersecurity Analyst","UI/UX Designer","Product Manager","HR / General"];
+const STEPS = ["Account","Profile","Target","Interview","Report"];
+const SCREEN_STEP = {login:0,profile:1,target:2,interview:3,report:4,dash:4};
+const FILLERS = ["um","uh","like","you know","basically","actually","kind of","sort of","i mean"];
+
+/* Question bank. kw = keywords a good answer usually mentions. */
+const ROLE_Q = {
+  "Software Engineer":[
+    {d:"easy",q:"What is the difference between an array and a linked list?",kw:["index","memory","insert","delete","sequential","pointer","contiguous"]},
+    {d:"easy",q:"Explain object-oriented programming and its four pillars.",kw:["encapsulation","inheritance","polymorphism","abstraction","class","object"]},
+    {d:"medium",q:"How would you detect a cycle in a linked list?",kw:["slow","fast","pointer","hash","visited","o(n)","floyd"]},
+    {d:"medium",q:"What is time complexity? Compare O(n) and O(log n) with an example.",kw:["big o","growth","binary search","linear","input size","scale"]},
+    {d:"hard",q:"Design a URL shortener. Walk me through the main components.",kw:["hash","database","cache","collision","scale","redirect","load balancer","base62"]},
+    {d:"hard",q:"How would you design a rate limiter for an API?",kw:["token bucket","sliding window","redis","per user","limit","distributed","429"]}],
+  "Frontend Developer":[
+    {d:"easy",q:"What is the CSS box model?",kw:["content","padding","border","margin","box-sizing"]},
+    {d:"easy",q:"What is the difference between let, const and var?",kw:["scope","hoisting","block","reassign","function","temporal"]},
+    {d:"medium",q:"Explain the virtual DOM and why frameworks use it.",kw:["diff","reconcile","real dom","update","performance","render"]},
+    {d:"medium",q:"How do you make a web page responsive and accessible?",kw:["media query","flexbox","grid","aria","semantic","keyboard","contrast","viewport"]},
+    {d:"hard",q:"A page loads slowly. How do you find and fix the problem?",kw:["lighthouse","bundle","lazy","cache","image","network","code splitting","render blocking"]},
+    {d:"hard",q:"Explain the JavaScript event loop, microtasks and macrotasks.",kw:["call stack","queue","promise","settimeout","microtask","async","single thread"]}],
+  "Backend Developer":[
+    {d:"easy",q:"What is a REST API and which HTTP methods do you use most?",kw:["get","post","put","delete","stateless","resource","status code","json"]},
+    {d:"easy",q:"What is the difference between SQL and NoSQL databases?",kw:["schema","relational","document","scale","join","acid","flexible"]},
+    {d:"medium",q:"How do you secure an API? Talk about authentication and authorization.",kw:["jwt","oauth","token","https","hash","role","rate limit","validation"]},
+    {d:"medium",q:"What is database indexing and when can it hurt performance?",kw:["index","query","b-tree","write","storage","lookup","slow"]},
+    {d:"hard",q:"How would you scale a service from 1,000 to 1 million users?",kw:["load balancer","cache","horizontal","database","replica","queue","stateless","cdn"]},
+    {d:"hard",q:"Explain how you would handle a race condition in a payment system.",kw:["transaction","lock","idempotent","isolation","atomic","retry","consistency"]}],
+  "Full Stack Developer":[
+    {d:"easy",q:"Walk me through what happens when you type a URL into the browser.",kw:["dns","tcp","http","server","response","render","html"]},
+    {d:"easy",q:"What is CORS and why does it exist?",kw:["origin","browser","header","security","preflight","same-origin"]},
+    {d:"medium",q:"How would you build login with sessions or JWT? Compare them.",kw:["cookie","token","stateless","expiry","refresh","storage","server"]},
+    {d:"medium",q:"How do you design the data flow between front end, API and database for a feature?",kw:["state","api","schema","validation","error","request","component"]},
+    {d:"hard",q:"How would you build a real-time chat feature end to end?",kw:["websocket","server","message","database","scale","presence","queue","reconnect"]},
+    {d:"hard",q:"How do you test and deploy a full stack app safely?",kw:["unit","integration","ci","cd","staging","rollback","monitor","environment"]}],
+  "Data Analyst":[
+    {d:"easy",q:"What is the difference between INNER JOIN and LEFT JOIN?",kw:["match","all rows","null","left table","common","key"]},
+    {d:"easy",q:"How do you handle missing data in a dataset?",kw:["drop","impute","mean","median","null","pattern","bias"]},
+    {d:"medium",q:"A key business metric dropped 15% last week. How do you investigate?",kw:["segment","trend","data quality","hypothesis","compare","filter","root cause","stakeholder"]},
+    {d:"medium",q:"Explain correlation versus causation with an example.",kw:["relationship","confound","experiment","a/b","third variable","cause"]},
+    {d:"hard",q:"How would you design an A/B test and decide if the result is significant?",kw:["hypothesis","sample size","p-value","control","randomize","confidence","power"]},
+    {d:"hard",q:"Walk me through building a dashboard for executives.",kw:["kpi","audience","filter","refresh","simple","insight","source","drill"]}],
+  "Data Scientist / ML Engineer":[
+    {d:"easy",q:"What is overfitting and how do you prevent it?",kw:["training","validation","regularization","cross-validation","dropout","more data","generalize"]},
+    {d:"easy",q:"Explain supervised versus unsupervised learning.",kw:["labels","classification","regression","clustering","unlabeled","example"]},
+    {d:"medium",q:"How do you choose evaluation metrics for an imbalanced classification problem?",kw:["precision","recall","f1","roc","auc","accuracy","imbalance","threshold"]},
+    {d:"medium",q:"Explain the bias-variance tradeoff.",kw:["bias","variance","underfit","overfit","complexity","error"]},
+    {d:"hard",q:"How would you deploy and monitor a machine learning model in production?",kw:["api","drift","monitor","retrain","version","latency","pipeline","feature"]},
+    {d:"hard",q:"Explain how a transformer model works at a high level.",kw:["attention","token","embedding","encoder","decoder","parallel","context","self-attention"]}],
+  "DevOps Engineer":[
+    {d:"easy",q:"What is CI/CD and why does it matter?",kw:["build","test","deploy","automate","pipeline","fast","integration"]},
+    {d:"easy",q:"What is the difference between a container and a virtual machine?",kw:["kernel","isolation","lightweight","hypervisor","image","docker","os"]},
+    {d:"medium",q:"How does Kubernetes keep an application available?",kw:["pod","replica","self-heal","deployment","service","scale","node","probe"]},
+    {d:"medium",q:"How would you set up monitoring and alerting for a service?",kw:["metrics","logs","alert","dashboard","slo","latency","error rate","on-call"]},
+    {d:"hard",q:"Your production deployment caused an outage. Walk me through your response.",kw:["rollback","incident","communicate","root cause","postmortem","monitor","mitigate","timeline"]},
+    {d:"hard",q:"How would you design infrastructure as code for multiple environments?",kw:["terraform","module","state","environment","variable","review","drift","secrets"]}],
+  "Product Manager":[
+    {d:"easy",q:"How do you decide what to build next?",kw:["user","impact","effort","priority","data","roadmap","goal","stakeholder"]},
+    {d:"easy",q:"What makes a good product requirement or user story?",kw:["user","problem","acceptance","outcome","scope","metric"]},
+    {d:"medium",q:"Which metrics would you track for a new mobile app, and why?",kw:["retention","activation","engagement","dau","churn","funnel","north star"]},
+    {d:"medium",q:"Engineering says a feature will take twice as long as planned. What do you do?",kw:["trade-off","scope","prioritize","communicate","mvp","timeline","stakeholder"]},
+    {d:"hard",q:"Design a product to help students prepare for interviews.",kw:["user","pain point","feature","mvp","metric","competitor","research","monetize"]},
+    {d:"hard",q:"A major feature has low adoption. How do you diagnose it?",kw:["funnel","feedback","interview","analytics","hypothesis","experiment","segment","onboarding"]}],
+  "Android Developer":[
+    {d:"easy",q:"Explain the Android activity lifecycle.",kw:["oncreate","onstart","onresume","onpause","ondestroy","state","rotation"]},
+    {d:"easy",q:"What is the difference between an Activity and a Fragment?",kw:["ui","reusable","lifecycle","host","screen","modular"]},
+    {d:"medium",q:"How do you handle background work in Android?",kw:["workmanager","coroutine","thread","service","battery","main thread","async"]},
+    {d:"medium",q:"What is MVVM and why is it popular in Android apps?",kw:["viewmodel","livedata","separation","testable","state","view","model"]},
+    {d:"hard",q:"How would you make a list screen with thousands of items smooth and offline-friendly?",kw:["recyclerview","paging","room","cache","diff","sync","image loading"]},
+    {d:"hard",q:"How do you find and fix memory leaks in an Android app?",kw:["leakcanary","context","static","profiler","lifecycle","listener","weak reference"]}],
+  "QA / Test Engineer":[
+    {d:"easy",q:"What is the difference between smoke, sanity and regression testing?",kw:["build","critical","changes","full","after","stability"]},
+    {d:"easy",q:"What makes a good bug report?",kw:["steps","expected","actual","environment","severity","screenshot","reproduce"]},
+    {d:"medium",q:"How do you decide what to automate and what to test manually?",kw:["repeatable","regression","roi","exploratory","stable","effort","risk"]},
+    {d:"medium",q:"Explain the test pyramid.",kw:["unit","integration","ui","fast","cheap","e2e","many"]},
+    {d:"hard",q:"A feature is releasing tomorrow and you found a serious bug. What do you do?",kw:["severity","impact","communicate","workaround","risk","decision","stakeholder","retest"]},
+    {d:"hard",q:"How would you design a test strategy for a payments feature?",kw:["edge case","security","idempotent","failure","integration","performance","data","automation"]}],
+  "Cybersecurity Analyst":[
+    {d:"easy",q:"What is the CIA triad?",kw:["confidentiality","integrity","availability","protect","data","access"]},
+    {d:"easy",q:"What is the difference between symmetric and asymmetric encryption?",kw:["key","public","private","fast","exchange","aes","rsa"]},
+    {d:"medium",q:"Explain SQL injection and how to prevent it.",kw:["input","parameterized","prepared","sanitize","query","least privilege","orm"]},
+    {d:"medium",q:"What are XSS and CSRF, and how do you defend against each?",kw:["script","escape","token","same-site","csp","session","validate"]},
+    {d:"hard",q:"You detect unusual outbound traffic from a server. Walk me through your response.",kw:["isolate","logs","contain","investigate","indicator","escalate","forensic","recover"]},
+    {d:"hard",q:"How would you design a security monitoring setup for a growing company?",kw:["siem","logs","alert","baseline","endpoint","incident","patch","access"]}],
+  "Cloud Engineer":[
+    {d:"easy",q:"What is the difference between IaaS, PaaS and SaaS?",kw:["infrastructure","platform","software","manage","example","control"]},
+    {d:"easy",q:"What is a load balancer and why use one?",kw:["traffic","distribute","availability","health check","scale","server"]},
+    {d:"medium",q:"How do you design a highly available application in the cloud?",kw:["multi-az","redundancy","load balancer","failover","auto scaling","backup","region"]},
+    {d:"medium",q:"How do you control cloud costs?",kw:["monitor","right-size","reserved","spot","tags","budget","unused","autoscale"]},
+    {d:"hard",q:"How would you migrate an on-premise application to the cloud?",kw:["assess","plan","lift and shift","refactor","data","downtime","test","rollback"]},
+    {d:"hard",q:"How do you secure a cloud environment?",kw:["iam","least privilege","encryption","network","logging","mfa","secrets","audit"]}],
+  "UI/UX Designer":[
+    {d:"easy",q:"Walk me through your design process from problem to final design.",kw:["research","user","wireframe","prototype","test","iterate","feedback"]},
+    {d:"easy",q:"What is the difference between UX and UI?",kw:["experience","interface","flow","visual","usability","research","layout"]},
+    {d:"medium",q:"How do you make a design accessible?",kw:["contrast","keyboard","screen reader","text size","labels","color","wcag"]},
+    {d:"medium",q:"A stakeholder dislikes your design. How do you respond?",kw:["listen","data","user","research","compromise","explain","test"]},
+    {d:"hard",q:"How would you redesign the checkout flow of an e-commerce app that has high drop-off?",kw:["analytics","funnel","friction","steps","test","trust","mobile","a/b"]},
+    {d:"hard",q:"How do you measure whether a design change actually improved the experience?",kw:["metric","usability test","a/b","task success","time on task","survey","conversion","baseline"]}],
+  "HR / General":[
+    {d:"easy",q:"What are your greatest strengths?",kw:["example","skill","result","team","learn"]},
+    {d:"easy",q:"Where do you see yourself in five years?",kw:["grow","learn","role","contribute","goal","skills"]},
+    {d:"medium",q:"How do you handle pressure and tight deadlines?",kw:["prioritize","plan","communicate","calm","example","break down"]},
+    {d:"medium",q:"Tell me about a weakness and what you are doing about it.",kw:["aware","improve","example","feedback","progress","practice"]},
+    {d:"hard",q:"Why should we hire you over other candidates?",kw:["skills","value","example","result","fit","team","unique"]},
+    {d:"hard",q:"Tell me about a time you disagreed with a decision. What did you do?",kw:["listen","data","respect","outcome","compromise","situation","result"]}]
+};
+
+const SKILL_Q = {
+  "JavaScript":{q:"Explain closures in JavaScript with an example.",kw:["function","scope","variable","outer","lexical","private","counter"]},
+  "React":{q:"How do hooks like useState and useEffect work, and when does a component re-render?",kw:["state","effect","dependency","render","props","cleanup","update"]},
+  "Node.js":{q:"How does Node.js handle many requests with a single thread?",kw:["event loop","non-blocking","async","callback","libuv","i/o","worker"]},
+  "Python":{q:"What are decorators and generators in Python? Give one use for each.",kw:["function","wrap","yield","iterator","memory","lazy","@"]},
+  "Java":{q:"What is the difference between an interface and an abstract class in Java?",kw:["implement","extend","multiple","method","default","abstract","constructor"]},
+  "C++":{q:"What is the difference between a pointer and a reference in C++?",kw:["address","null","reassign","alias","memory","dereference"]},
+  "SQL":{q:"Write or describe a query to find the second highest salary in a table.",kw:["order by","limit","subquery","max","distinct","dense_rank","offset"]},
+  "Data Structures":{q:"When would you use a hash map instead of a tree?",kw:["lookup","o(1)","order","collision","sorted","memory","key"]},
+  "System Design":{q:"How do you decide between a cache and a database read replica to speed up reads?",kw:["latency","stale","consistency","ttl","cost","read-heavy","invalidate"]},
+  "Machine Learning":{q:"Describe an ML project you have done, including data, model and result.",kw:["data","model","accuracy","feature","train","test","metric","result"]},
+  "Git":{q:"What is the difference between git merge and git rebase?",kw:["history","commit","linear","conflict","branch","shared","force"]},
+  "Docker":{q:"What goes into a Dockerfile and how do you keep an image small?",kw:["layer","from","copy","run","multi-stage","cache","alpine","base image"]},
+  "AWS":{q:"Which AWS services would you use to host a web app, and why?",kw:["ec2","s3","rds","lambda","load balancer","cloudfront","iam","scale"]},
+  "REST APIs":{q:"How do you design clean REST endpoints for a blog with posts and comments?",kw:["resource","noun","get","post","status","nested","pagination","version"]},
+  "HTML/CSS":{q:"What is the difference between flexbox and grid, and when do you use each?",kw:["one-dimensional","two-dimensional","row","column","layout","align","template"]},
+  "TypeScript":{q:"Why use TypeScript over JavaScript? Explain interfaces, types and generics briefly.",kw:["type safety","compile","interface","generic","error","tooling","maintain"]},
+  "MongoDB":{q:"When would you choose MongoDB over a relational database, and how do you design a schema in it?",kw:["document","embed","reference","flexible","index","join","scale"]},
+  "Spring Boot":{q:"How does Spring Boot simplify building a Java web service? Mention dependency injection.",kw:["auto-configuration","starter","dependency injection","bean","controller","annotation","embedded"]},
+  "Kubernetes":{q:"Explain pods, deployments and services in Kubernetes.",kw:["pod","deployment","service","replica","scale","container","label"]},
+  "Linux":{q:"How would you find which process is using the most CPU or memory on a Linux server, and stop it?",kw:["top","ps","htop","kill","pid","memory","signal"]},
+  "Networking":{q:"What is the difference between TCP and UDP, and when do you use each?",kw:["reliable","handshake","order","fast","streaming","packet","connection"]},
+  "Selenium":{q:"How do you make Selenium tests stable and not flaky?",kw:["wait","explicit","locator","page object","data","retry","isolation"]},
+  "Figma":{q:"How do you use components, variants and auto layout in Figma to build a design system?",kw:["component","variant","auto layout","tokens","consistency","reuse","style"]},
+  "Power BI / Tableau":{q:"How would you build a sales dashboard in Power BI or Tableau, from data source to published report?",kw:["data source","clean","model","measure","visual","filter","refresh","share"]},
+  "Excel":{q:"How do VLOOKUP, INDEX/MATCH and pivot tables differ, and when would you use each?",kw:["lookup","column","pivot","summarize","range","exact","dynamic"]}
+};
+
+const BEHAVIORAL_Q = [
+  {q:"Tell me about a challenging project you worked on. What was your role and the result?",kw:["situation","task","action","result","team","challenge","learned"]},
+  {q:"Describe a time you worked in a team and faced a conflict. How did you resolve it?",kw:["listen","communicate","conflict","resolve","compromise","outcome","team"]},
+  {q:"Tell me about a time you failed. What did you learn?",kw:["mistake","learned","improve","responsibility","next time","result"]},
+  {q:"Describe a time you had to learn something new quickly.",kw:["learn","resource","practice","project","time","result","applied"]}
+];
+
+
+/* Company-style questions. These are my own questions, written in the style each company is publicly known for. They are not leaked real questions. */
+const COMPANY_Q = {
+  google:[
+    {q:"Tell me about a time you faced an unclear problem. How did you break it down and decide what to do?",kw:["ambiguous","break down","assumption","data","prioritize","iterate","result"]},
+    {q:"How would you improve a maps app for people who walk or cycle?",kw:["user","problem","feature","metric","research","trade-off","privacy"]},
+    {q:"Explain a complex technical idea to someone non-technical.",kw:["analogy","simple","audience","example","check","jargon"]}],
+  amazon:[
+    {q:"Tell me about a time you went above and beyond for a customer or user.",kw:["customer","need","action","result","feedback","long-term","situation"]},
+    {q:"Tell me about a time you took ownership of something that was not strictly your job.",kw:["ownership","responsibility","initiative","result","follow through","situation","action"]},
+    {q:"Describe a time you had to make a decision quickly with limited data.",kw:["bias for action","risk","data","decision","result","reversible","learned"]},
+    {q:"Tell me about a time you dug deep into data or a system to find the real cause of a problem.",kw:["root cause","metrics","logs","analysis","hypothesis","fix","prevent"]}],
+  microsoft:[
+    {q:"Tell me about a time you learned from a failure and changed how you work.",kw:["growth mindset","feedback","mistake","learned","improve","result"]},
+    {q:"How do you work with people who have different views or backgrounds than you?",kw:["listen","respect","inclusive","collaborate","perspective","example"]},
+    {q:"How would you design a simple accessible app for people with low vision?",kw:["screen reader","contrast","text size","keyboard","labels","test","users"]}],
+  openai:[
+    {q:"How would you evaluate whether a language model's answers are good and safe?",kw:["benchmark","human","eval","hallucination","metrics","test set","bias","safety"]},
+    {q:"What are the risks of deploying AI systems, and how would you reduce them?",kw:["misuse","bias","monitor","safety","testing","feedback","transparency","guardrails"]},
+    {q:"Describe a time you moved fast on a project with unclear requirements.",kw:["prototype","iterate","feedback","priorities","communicate","result","learned"]}],
+  services:[
+    {q:"Are you comfortable learning whatever technology a client project needs, and working in shifts or relocating?",kw:["flexible","learn","client","adapt","team","willing","example"]},
+    {q:"How would you handle a client who keeps changing the requirements?",kw:["communicate","scope","document","prioritize","expectation","change request","team"]},
+    {q:"Tell me about your final-year or biggest project and your exact contribution to it.",kw:["problem","role","technology","team","result","challenge","learned"]}],
+  product:[
+    {q:"Tell me about something you built on your own, outside coursework. Why did you build it?",kw:["problem","built","users","learned","tech","challenge","result"]},
+    {q:"How do you decide between shipping fast and building it right?",kw:["trade-off","risk","deadline","quality","tech debt","impact","iterate"]},
+    {q:"Which of our products do you use, and what would you change?",kw:["user","problem","improve","metric","example","priority","feedback"]}],
+  generic:[
+    {q:"What would you do in your first 30 days in this role?",kw:["learn","team","goals","codebase","questions","listen","small win"]},
+    {q:"How do you keep learning new technologies?",kw:["projects","courses","docs","practice","community","example","regularly"]},
+    {q:"Tell me about a time you helped a teammate succeed.",kw:["team","support","example","action","result","communicate","learned"]}]
+};
+function companyKey(n){
+  const c = n.toLowerCase();
+  if(/google|alphabet|deepmind/.test(c)) return "google";
+  if(/amazon|aws/.test(c)) return "amazon";
+  if(/microsoft|linkedin|github/.test(c)) return "microsoft";
+  if(/openai|anthropic/.test(c)) return "openai";
+  if(/tcs|infosys|wipro|accenture|cognizant|capgemini|hcl|tech mahindra|deloitte/.test(c)) return "services";
+  if(/flipkart|zoho|swiggy|zomato|paytm|razorpay|phonepe|freshworks|meesho/.test(c)) return "product";
+  return "generic";
+}
+
+/* Coding questions (JavaScript). Each test: args array -> expected return value. */
+const CODE_Q = [
+  {d:"easy",title:"Palindrome check",fname:"isPalindrome",
+   q:"Write isPalindrome(s). Return true if s reads the same forwards and backwards, ignoring case and any character that is not a letter or digit.\n\nExample: isPalindrome(\"A man, a plan, a canal: Panama\") returns true",
+   starter:"function isPalindrome(s) {\n  // your code here\n}\n",
+   tests:[{args:["A man, a plan, a canal: Panama"],expected:true},{args:["race a car"],expected:false},{args:[""],expected:true},{args:["No 'x' in Nixon"],expected:true}]},
+  {d:"easy",title:"Two sum",fname:"twoSum",
+   q:"Write twoSum(nums, target). Return the indices [i, j] with i < j such that nums[i] + nums[j] equals target. Exactly one solution exists.\n\nExample: twoSum([2, 7, 11, 15], 9) returns [0, 1]",
+   starter:"function twoSum(nums, target) {\n  // your code here\n}\n",
+   tests:[{args:[[2,7,11,15],9],expected:[0,1]},{args:[[3,2,4],6],expected:[1,2]},{args:[[3,3],6],expected:[0,1]},{args:[[-1,-2,-3,-4,-5],-8],expected:[2,4]}]},
+  {d:"easy",title:"FizzBuzz",fname:"fizzBuzz",
+   q:"Write fizzBuzz(n). Return an array of strings for 1 to n: \"Fizz\" for multiples of 3, \"Buzz\" for multiples of 5, \"FizzBuzz\" for both, otherwise the number as a string.",
+   starter:"function fizzBuzz(n) {\n  // your code here\n}\n",
+   tests:[{args:[1],expected:["1"]},{args:[5],expected:["1","2","Fizz","4","Buzz"]},{args:[15],expected:["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]}]},
+  {d:"medium",title:"Valid parentheses",fname:"isValid",
+   q:"Write isValid(s). The string contains only ( ) [ ] { }. Return true if every bracket is closed by the same type in the correct order.\n\nExample: isValid(\"{[]}\") returns true, isValid(\"(]\") returns false",
+   starter:"function isValid(s) {\n  // your code here\n}\n",
+   tests:[{args:["()[]{}"],expected:true},{args:["(]"],expected:false},{args:["([)]"],expected:false},{args:["{[]}"],expected:true},{args:[""],expected:true},{args:["(("],expected:false}]},
+  {d:"medium",title:"Maximum subarray",fname:"maxSubArray",
+   q:"Write maxSubArray(nums). Return the largest sum of any contiguous, non-empty subarray.\n\nExample: maxSubArray([-2, 1, -3, 4, -1, 2, 1, -5, 4]) returns 6",
+   starter:"function maxSubArray(nums) {\n  // your code here\n}\n",
+   tests:[{args:[[-2,1,-3,4,-1,2,1,-5,4]],expected:6},{args:[[1]],expected:1},{args:[[-3,-1,-2]],expected:-1},{args:[[5,4,-1,7,8]],expected:23}]},
+  {d:"medium",title:"Longest substring without repeats",fname:"lengthOfLongestSubstring",
+   q:"Write lengthOfLongestSubstring(s). Return the length of the longest substring that has no repeated characters.\n\nExample: lengthOfLongestSubstring(\"abcabcbb\") returns 3",
+   starter:"function lengthOfLongestSubstring(s) {\n  // your code here\n}\n",
+   tests:[{args:["abcabcbb"],expected:3},{args:["bbbbb"],expected:1},{args:["pwwkew"],expected:3},{args:[""],expected:0},{args:["dvdf"],expected:3}]},
+  {d:"hard",title:"Merge intervals",fname:"mergeIntervals",
+   q:"Write mergeIntervals(intervals). Merge all overlapping intervals and return the result sorted by start.\n\nExample: mergeIntervals([[1,3],[2,6],[8,10]]) returns [[1,6],[8,10]]",
+   starter:"function mergeIntervals(intervals) {\n  // your code here\n}\n",
+   tests:[{args:[[[1,3],[2,6],[8,10],[15,18]]],expected:[[1,6],[8,10],[15,18]]},{args:[[[1,4],[4,5]]],expected:[[1,5]]},{args:[[[1,4],[0,4]]],expected:[[0,4]]},{args:[[[1,4],[2,3]]],expected:[[1,4]]}]},
+  {d:"hard",title:"Trapping rain water",fname:"trap",
+   q:"Write trap(height). Each number is the height of a bar of width 1. Return how many units of water are trapped between the bars after rain.\n\nExample: trap([0,1,0,2,1,0,1,3,2,1,2,1]) returns 6",
+   starter:"function trap(height) {\n  // your code here\n}\n",
+   tests:[{args:[[0,1,0,2,1,0,1,3,2,1,2,1]],expected:6},{args:[[4,2,0,3,2,5]],expected:9},{args:[[]],expected:0},{args:[[3,3,3]],expected:0}]}
+];
+
+/* Used to detect skills in an uploaded resume */
+const SKILL_PATTERNS = {
+  "HTML/CSS":/\bhtml5?\b|\bcss3?\b/i, "JavaScript":/\bjavascript\b|\bjs\b|\bes6\b/i, "TypeScript":/\btypescript\b/i,
+  "React":/\breact(\.js|js)?\b/i, "Node.js":/\bnode(\.js|js)?\b|\bexpress(\.js)?\b/i, "Python":/\bpython\b|\bdjango\b|\bflask\b|\bfastapi\b/i,
+  "Java":/\bjava\b/i, "C++":/c\+\+/i, "SQL":/\bsql\b|\bmysql\b|\bpostgres(ql)?\b/i, "MongoDB":/\bmongo(db)?\b/i,
+  "Spring Boot":/\bspring( boot)?\b/i, "Data Structures":/data structures|\bdsa\b|\balgorithms?\b/i, "System Design":/system design/i,
+  "Machine Learning":/machine learning|\bml\b|deep learning|\btensorflow\b|\bpytorch\b|\bscikit/i, "Git":/\bgit(hub|lab)?\b/i,
+  "Docker":/\bdocker\b/i, "Kubernetes":/\bkubernetes\b|\bk8s\b/i, "AWS":/\baws\b|amazon web services|\bec2\b|\bs3\b/i,
+  "Linux":/\blinux\b|\bubuntu\b/i, "Networking":/networking|\btcp\b|\bdns\b/i, "REST APIs":/\brest(ful)?\b|\bapis?\b/i,
+  "Selenium":/\bselenium\b/i, "Figma":/\bfigma\b/i, "Excel":/\bexcel\b/i, "Power BI / Tableau":/power ?bi|\btableau\b/i,
+  "Communication":/communication|presentation/i, "Leadership":/leadership|team lead|led a team/i
+};
+
+/* ---------- State ---------- */
+const $ = id => document.getElementById(id);
+const state = {user:null, profile:null, target:null, qs:[], answers:[], idx:0, startedAt:0, voiceMs:0, usedVoice:false, interviewId:null, server:false};
+let timerId = null, qStart = 0, recog = null, listening = false;
+
+const store = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (n,a=0,b=100) => Math.max(a, Math.min(b, Math.round(n)));
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* ---------- Navigation ---------- */
+function go(name){
+  if(name !== "interview"){ stopMic(); stopCam(); }
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $("s-"+name).classList.add("active");
+  renderStepper(SCREEN_STEP[name]);
+  window.scrollTo({top:0, behavior:"smooth"});
+  if(name === "dash") renderDash();
+}
+function renderStepper(cur){
+  $("stepper").innerHTML = STEPS.map((s,i) => `<li class="${i<cur?"done":i===cur?"cur":""}">${s}</li>`).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-go]");
+  if(b) go(b.dataset.go);
+});
+$("navDash").onclick = () => go("dash");
+
+/* ---------- 1. Login / sign up ---------- */
+let authMode = "register";
+function setAuthMode(m){
+  authMode = m;
+  const reg = m === "register";
+  $("loginTitle").textContent = reg ? "Create your account" : "Welcome back";
+  $("nameRow").hidden = reg ? false : true;
+  $("uName").required = reg;
+  $("uPass").autocomplete = reg ? "new-password" : "current-password";
+  $("loginBtn").textContent = reg ? "Create account" : "Log in";
+  $("authSwitch").textContent = reg ? "I already have an account" : "New here? Create an account";
+  $("loginErr").textContent = "";
+}
+$("authSwitch").onclick = () => setAuthMode(authMode === "register" ? "login" : "register");
+
+function showUser(){
+  $("navOut").hidden = !state.user || !(online && token);
+  $("navDash").hidden = false;
+}
+function applyProfile(p){
+  if(!p) return;
+  state.profile = p;
+  picked.clear(); (p.skills || []).forEach(x => picked.add(x)); renderChips();
+  $("pEdu").value = p.education || $("pEdu").value;
+  $("pYears").value = p.years || 0;
+  const lv = document.querySelector(`input[name="level"][value="${p.level}"]`); if(lv) lv.checked = true;
+  const pr = document.querySelector(`input[name="prior"][value="${p.prior}"]`); if(pr) pr.checked = true;
+  $("pProjects").value = p.projects || "";
+}
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("uName").value.trim(), email = $("uEmail").value.trim();
+  if(online){
+    $("loginBtn").disabled = true; $("loginErr").textContent = "";
+    try{
+      const j = await api("/api/auth/" + authMode, "POST", {name, email, password: $("uPass").value});
+      setToken(j.token); state.user = j.user; $("uPass").value = "";
+      store.set("mm_user", state.user);
+      applyProfile(j.profile); showUser();
+      go("profile");
+    }catch(err){ $("loginErr").textContent = err.message; }
+    $("loginBtn").disabled = false;
+    return;
+  }
+  // offline demo mode: details stay in this browser only
+  state.user = {name: name || email.split("@")[0], email};
+  store.set("mm_user", state.user);
+  go("profile");
+});
+$("navOut").onclick = async () => {
+  try{ await api("/api/auth/logout", "POST", {}); }catch(e){}
+  setToken(null); state.user = null; state.profile = null; picked.clear(); renderChips();
+  $("navOut").hidden = true; setAuthMode("login"); go("login");
+};
+const saved = store.get("mm_user", null);
+if(saved){ state.user = saved; $("uName").value = saved.name; $("uEmail").value = saved.email; }
+
+/* ---------- 2. Profile ---------- */
+const picked = new Set();
+function renderChips(){
+  const all = Array.from(new Set([...SKILLS, ...picked]));
+  $("skillChips").innerHTML = all.map(s =>
+    `<button type="button" class="chip" aria-pressed="${picked.has(s)}" data-skill="${esc(s)}">${esc(s)}</button>`).join("");
+  $("skillCount").textContent = `(${picked.size} selected)`;
+}
+$("skillChips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if(!c) return;
+  const s = c.dataset.skill;
+  picked.has(s) ? picked.delete(s) : picked.add(s);
+  renderChips();
+});
+function addCustomSkill(){
+  const v = $("customSkill").value.trim();
+  if(v){ picked.add(v); $("customSkill").value = ""; renderChips(); }
+}
+$("addSkill").onclick = addCustomSkill;
+$("customSkill").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); addCustomSkill(); } });
+renderChips();
+
+/* Resume upload: finds skills and project lines, all inside the browser */
+function loadScript(src){ return new Promise((res,rej) => { const t = document.createElement("script"); t.src = src; t.onload = res; t.onerror = rej; document.head.appendChild(t); }); }
+async function readPdf(file){
+  if(!window.pdfjsLib){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+  const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+  let out = "";
+  for(let i=1;i<=pdf.numPages;i++){
+    const content = await (await pdf.getPage(i)).getTextContent();
+    out += content.items.map(it => it.str + (it.hasEOL ? "\n" : " ")).join("") + "\n";
+  }
+  return out;
+}
+function extractProjects(text){
+  return text.split(/\r?\n/).map(l => l.trim().replace(/^[-•*▪●\d.)\s]+/,""))
+    .filter(l => l.length >= 30 && l.length <= 220 && /\b(built|developed|designed|created|implemented|led|deployed|automated|improved|project)\b/i.test(l)).slice(0,4);
+}
+$("resumeFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; if(!f) return;
+  $("resumeNote").textContent = "Reading your resume...";
+  try{
+    const text = /\.pdf$/i.test(f.name) ? await readPdf(f) : await f.text();
+    if(!text.trim()) throw new Error("empty");
+    const found = Object.entries(SKILL_PATTERNS).filter(([,re]) => re.test(text)).map(([k]) => k);
+    found.forEach(k => picked.add(k)); renderChips();
+    const proj = extractProjects(text);
+    if(proj.length && !$("pProjects").value.trim()) $("pProjects").value = proj.join("\n");
+    $("resumeNote").textContent = `Found ${found.length} skill${found.length===1?"":"s"} and ${proj.length} project line${proj.length===1?"":"s"}. Check the selections above and edit anything that's wrong.`;
+  }catch(err){
+    $("resumeNote").textContent = "Couldn't read that file. Try a .txt version, or pick your skills manually.";
+  }
+});
+
+$("profileForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if(picked.size === 0){ $("profileErr").textContent = "Pick at least one skill so we can ask relevant questions."; return; }
+  $("profileErr").textContent = "";
+  state.profile = {
+    education: $("pEdu").value,
+    years: Number($("pYears").value) || 0,
+    level: document.querySelector('input[name="level"]:checked').value,
+    prior: document.querySelector('input[name="prior"]:checked').value,
+    skills: Array.from(picked),
+    projects: $("pProjects").value.trim()
+  };
+  if(online && token){
+    try{ const j = await api("/api/profile", "PUT", state.profile); state.profile = j.profile; }
+    catch(err){ $("profileErr").textContent = err.message; if(err.status === 401){ setToken(null); go("login"); } return; }
+  }
+  go("target");
+});
+
+/* ---------- 3. Target ---------- */
+$("tRole").innerHTML = ROLES.map(r => `<option>${r}</option>`).join("");
+$("targetForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if(!state.profile){ go("profile"); return; }
+  state.target = {
+    company: $("tCompany").value.trim(),
+    role: $("tRole").value,
+    type: $("tType").value,
+    difficulty: $("tDiff").value,
+    count: Number($("tCount").value),
+    mode: $("tMode").value,
+    speak: $("tSpeak").checked,
+    code: $("tCode").checked,
+    cam: $("tCam").checked
+  };
+  $("loading").hidden = false;
+  try{ state.qs = await getQuestions(); }
+  catch(err){ $("loading").hidden = true; alert(err.message); return; }
+  $("loading").hidden = true;
+  startInterview();
+});
+
+function autoDifficulty(){
+  const l = state.profile.level;
+  return l === "Fresher" ? "easy" : l === "Junior" ? "easy" : l === "Mid" ? "medium" : "hard";
+}
+
+async function getQuestions(){
+  const t = state.target;
+  const diff = t.difficulty === "auto" ? autoDifficulty() : t.difficulty;
+  state.interviewId = null; state.server = false;
+  if(online && token){
+    try{
+      const j = await api("/api/interviews/start", "POST", {company:t.company, role:t.role, type:t.type, difficulty:diff, count:t.count, code:t.code});
+      state.interviewId = j.interviewId; state.server = true;
+      return j.questions;
+    }catch(err){
+      if(err.status === 401){ setToken(null); online = false; alert("Your session expired, so this interview runs in offline mode. Log in again afterwards to save results."); }
+      else console.warn("Backend unavailable, using local questions.", err);
+    }
+  }
+  return localQuestions(diff);
+}
+
+function resumeQuestions(text){
+  return (text || "").split(/\r?\n|;/).map(l => l.trim().replace(/^[-•*▪●\d.)\s]+/,"")).filter(l => l.length >= 25).slice(0,2).map(l => ({
+    cat:"Resume project",
+    q:`Your profile mentions: "${l.length > 140 ? l.slice(0,137) + "..." : l}". Walk me through what you built, the hardest problem you solved, and what you would improve.`,
+    kw:["problem","design","challenge","technology","result","users","improve","decision","team","learned"]
+  }));
+}
+function pickCodeQuestion(diff){
+  const same = CODE_Q.filter(c => c.d === diff);
+  const c = shuffle(same.length ? same : CODE_Q)[0];
+  return {cat:`Coding (${c.d})`, type:"code", q:c.q, title:c.title, fname:c.fname, starter:c.starter, tests:c.tests, kw:[]};
+}
+function localQuestions(diff){
+  const t = state.target, p = state.profile;
+  const out = [{cat:"Introduction", q:`Tell me about yourself and why you want to work as a ${t.role} at ${t.company}.`,
+                kw:["experience","skills","project","interest","role",t.company.toLowerCase(),"goal","learn"]}];
+  const order = {easy:["easy","medium","hard"], medium:["medium","easy","hard"], hard:["hard","medium","easy"]}[diff];
+  const roleQs = shuffle(ROLE_Q[t.role] || ROLE_Q["Software Engineer"])
+    .sort((a,b) => order.indexOf(a.d) - order.indexOf(b.d)).map(x => ({cat:`${t.role} (${x.d})`, q:x.q, kw:x.kw}));
+  const skillQs = shuffle(p.skills.filter(s => SKILL_Q[s])).map(s => ({cat:`Your skill: ${s}`, ...SKILL_Q[s]}));
+  const behav = shuffle(BEHAVIORAL_Q).map(x => ({cat:"Behavioral", ...x}));
+  const compQs = shuffle(COMPANY_Q[companyKey(t.company)]).map(x => ({cat:"Company style", ...x}));
+  const resQs = resumeQuestions(p.projects);
+  const why = {cat:"Motivation", q:`Why ${t.company}? What do you know about the company and how would you contribute?`,
+               kw:["product","mission","culture","contribute","skills","value","team",t.company.toLowerCase()]};
+  let pool;
+  if(t.type === "Technical") pool = [resQs[0], ...skillQs.slice(0,3), ...roleQs, resQs[1], ...skillQs.slice(3)];
+  else if(t.type === "Behavioral / HR") pool = [why, resQs[0], compQs[0], ...behav, compQs[1], ...shuffle(ROLE_Q["HR / General"]).map(x => ({cat:"HR", q:x.q, kw:x.kw})), compQs[2]];
+  else pool = [roleQs[0], resQs[0], skillQs[0], behav[0], compQs[0], roleQs[1], why, skillQs[1], resQs[1], roleQs[2], behav[1], compQs[1], roleQs[3], skillQs[2]];
+  const limit = t.count - (t.code ? 1 : 0);
+  const seen = new Set([out[0].q]);
+  for(const q of pool.filter(Boolean)){ if(out.length >= limit) break; if(!seen.has(q.q)){ seen.add(q.q); out.push(q); } }
+  if(t.code) out.push(pickCodeQuestion(diff));
+  return out;
+}
+
+/* ---------- 4. Interview ---------- */
+function startInterview(){
+  state.answers = []; state.idx = 0; state.startedAt = Date.now(); state.voiceMs = 0; state.usedVoice = false;
+  go("interview");
+  showQuestion();
+  startCam();
+}
+function showQuestion(){
+  const q = state.qs[state.idx], n = state.qs.length;
+  $("iMeta").textContent = `Question ${state.idx+1} of ${n} · ${state.target.company}, ${state.target.role}`;
+  $("iCat").textContent = q.cat || "";
+  $("iQuestion").textContent = q.q;
+  const isCode = q.type === "code";
+  $("textBox").hidden = isCode; $("micWrap").hidden = isCode; $("codeBox").hidden = !isCode;
+  $("nextBtn").disabled = false; $("skipBtn").disabled = false;
+  $("iAnswer").value = ""; updateWords();
+  state.codeResult = null;
+  if(isCode){ $("code").value = q.starter; $("codeTitle").textContent = q.title; $("codeOut").textContent = "Write your solution, then press Run tests."; }
+  $("iBar").style.width = (state.idx / n * 100) + "%";
+  $("nextBtn").textContent = state.idx === n-1 ? "Finish and see report" : "Next question";
+  $("micNote").textContent = "";
+  qStart = Date.now(); state.qVoiceMs = 0;
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    const s = Math.floor((Date.now()-qStart)/1000);
+    $("iTimer").textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+  }, 500);
+  speak(isCode ? "Coding question. " + q.title : q.q);
+  if(isCode) $("code").focus();
+  else if(state.target.mode === "voice") $("micBtn").focus();
+  else $("iAnswer").focus();
+}
+function updateWords(){
+  const w = $("iAnswer").value.trim().split(/\s+/).filter(Boolean).length;
+  $("wordCount").textContent = `${w} word${w===1?"":"s"}`;
+}
+$("iAnswer").addEventListener("input", updateWords);
+
+function speak(text){
+  if(!state.target.speak || !("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.rate = 0.98;
+  speechSynthesis.speak(u);
+}
+$("replay").onclick = () => { const was = state.target.speak; state.target.speak = true; speak(state.qs[state.idx].type === "code" ? state.qs[state.idx].title : state.qs[state.idx].q); state.target.speak = was; };
+
+/* Voice input (Web Speech API: works in Chrome and Edge) */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micStart = 0;
+function startMic(){
+  if(!SR){ $("micNote").textContent = "Voice input isn't supported in this browser. Use Chrome or Edge, or type your answer."; return; }
+  if("speechSynthesis" in window) speechSynthesis.cancel();
+  recog = new SR(); recog.continuous = true; recog.interimResults = true; recog.lang = "en-IN";
+  const base = $("iAnswer").value ? $("iAnswer").value.trim() + " " : "";
+  let finalText = "";
+  recog.onresult = ev => {
+    let interim = "";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const r = ev.results[i];
+      if(r.isFinal) finalText += r[0].transcript + " "; else interim += r[0].transcript;
+    }
+    $("iAnswer").value = base + finalText + interim; updateWords();
+  };
+  recog.onerror = ev => { $("micNote").textContent = ev.error === "not-allowed" ? "Microphone blocked. Allow mic access in your browser's address bar." : "Voice error: " + ev.error; setMicUI(false); };
+  recog.onend = () => { if(listening) { try{ recog.start(); }catch(e){} } };
+  try{ recog.start(); listening = true; micStart = Date.now(); state.usedVoice = true; setMicUI(true); }catch(e){}
+}
+function stopMic(){
+  if(!listening) return;
+  listening = false;
+  state.qVoiceMs = (state.qVoiceMs||0) + (Date.now() - micStart);
+  try{ recog && recog.stop(); }catch(e){}
+  setMicUI(false);
+}
+function setMicUI(on){
+  $("micBtn").setAttribute("aria-pressed", on);
+  $("micLabel").textContent = on ? "Stop speaking" : "Start speaking";
+}
+$("micBtn").onclick = () => listening ? stopMic() : startMic();
+
+async function saveAnswer(skipped){
+  stopMic();
+  const q = state.qs[state.idx];
+  let text = "", test = null;
+  if(q.type === "code"){
+    const code = $("code").value;
+    if(!skipped && code.trim() && code.trim() !== q.starter.trim()){ text = code; test = state.server ? null : await runTests(code, q); }
+  } else {
+    text = skipped ? "" : $("iAnswer").value.trim();
+  }
+  state.answers.push({q, text, test, seconds: Math.round((Date.now()-qStart)/1000), voiceMs: state.qVoiceMs || 0});
+}
+async function advance(skipped){
+  $("nextBtn").disabled = true; $("skipBtn").disabled = true;
+  await saveAnswer(skipped);
+  if(state.idx < state.qs.length - 1){ state.idx++; showQuestion(); }
+  else { clearInterval(timerId); if("speechSynthesis" in window) speechSynthesis.cancel(); await finish(); }
+}
+$("nextBtn").onclick = () => advance(false);
+$("skipBtn").onclick = () => advance(true);
+
+/* ---------- Evaluation ---------- */
+function countFillers(text){
+  const low = " " + text.toLowerCase().replace(/[^a-z' ]/g," ") + " ";
+  return FILLERS.reduce((n,f) => n + (low.split(" "+f+" ").length - 1), 0);
+}
+function localEvaluate(a){
+  const text = a.text, low = text.toLowerCase();
+  const words = text.split(/\s+/).filter(Boolean);
+  const wc = words.length;
+  if(wc === 0) return {relevance:0, technical:0, communication:0, completeness:0, hits:[], miss:a.q.kw||[], wc:0, fillers:0, wpm:null, tip:"No answer given. Even a short attempt earns partial credit and gives you feedback."};
+  const kw = a.q.kw || [];
+  const hits = kw.filter(k => low.includes(k.toLowerCase()));
+  const miss = kw.filter(k => !hits.includes(k));
+  const need = Math.max(2, Math.ceil(kw.length * 0.5));
+  const kwScore = Math.min(1, hits.length / need);
+  const completeness = clamp(Math.min(1, wc / 90) * 70 + Math.min(1, hits.length / Math.max(1,kw.length)) * 30);
+  const relevance = clamp(kwScore * 85 + (wc >= 25 ? 15 : wc/25*15));
+  const technical = clamp(kwScore * 75 + Math.min(1, wc/80) * 25);
+  const fillers = countFillers(text);
+  const fillerRate = fillers / wc;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 3).length;
+  const avgLen = wc / Math.max(1, sentences);
+  let comm = 85 - fillerRate * 400;
+  if(avgLen > 35) comm -= 12;
+  if(avgLen < 5 && wc > 10) comm -= 8;
+  if(wc < 20) comm -= 20;
+  let wpm = null;
+  if(a.voiceMs > 3000){
+    wpm = Math.round(wc / (a.voiceMs/60000));
+    if(wpm < 100 || wpm > 180) comm -= 8;
+  }
+  const communication = clamp(comm);
+  let tip;
+  if(wc < 30) tip = "Too short. Add a concrete example and explain your reasoning in 3 to 5 sentences.";
+  else if(miss.length && kwScore < 0.6) tip = `You could mention: ${miss.slice(0,4).join(", ")}.`;
+  else if(fillerRate > 0.04) tip = "Good content. Cut filler words (like \"um\", \"basically\") by pausing briefly instead.";
+  else if(wc > 220) tip = "Strong, but long. Lead with the answer, then give one supporting example.";
+  else tip = "Solid answer. Add a measurable result or real example to make it stand out.";
+  return {relevance, technical, communication, completeness, hits, miss, wc, fillers, wpm, tip};
+}
+/* Camera preview (never recorded or uploaded) */
+let camStream = null;
+async function startCam(){
+  if(!state.target.cam) return;
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+    $("cam").srcObject = camStream; $("cam").hidden = false;
+    $("micNote").textContent = "Tip: look at the camera lens, sit upright, and keep your hands visible.";
+  }catch(err){
+    $("micNote").textContent = "Camera isn't available or was blocked. You can continue without it.";
+  }
+}
+function stopCam(){
+  if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  const v = $("cam"); if(v){ v.srcObject = null; v.hidden = true; }
+}
+
+/* Code editor + test runner (runs in a Web Worker with a 3 second limit) */
+function runTests(code, q){
+  return new Promise(resolve => {
+    const src = `onmessage = function(e){
+      const d = e.data; const out = [];
+      try{
+        const fn = new Function(d.code + "\\n;return typeof " + d.fname + " === 'function' ? " + d.fname + " : null;")();
+        if(!fn){ postMessage({error: "Define a function named " + d.fname + "."}); return; }
+        for(const t of d.tests){
+          try{
+            const r = fn.apply(null, JSON.parse(JSON.stringify(t.args)));
+            out.push({ok: JSON.stringify(r) === JSON.stringify(t.expected), got: r, args: t.args, expected: t.expected});
+          }catch(err){ out.push({ok:false, err:String(err), args:t.args, expected:t.expected}); }
+        }
+        postMessage({out: out});
+      }catch(err){ postMessage({error: String(err)}); }
+    };`;
+    const url = URL.createObjectURL(new Blob([src], {type:"text/javascript"}));
+    let w;
+    try{ w = new Worker(url); }catch(err){ URL.revokeObjectURL(url); resolve({error:"This browser couldn't start the test runner."}); return; }
+    const done = r => { clearTimeout(timer); w.terminate(); URL.revokeObjectURL(url); resolve(r); };
+    const timer = setTimeout(() => done({error:"Time limit exceeded (3 seconds). Check for an infinite loop."}), 3000);
+    w.onmessage = e => done(e.data);
+    w.onerror = e => done({error: e.message || "Runtime error"});
+    w.postMessage({code, fname:q.fname, tests:q.tests});
+  });
+}
+function formatTests(r, q){
+  if(r.error) return "Error: " + r.error;
+  const passed = r.out.filter(x => x.ok).length;
+  return `Passed ${passed} of ${r.out.length} tests\n` + r.out.map(x =>
+    `${x.ok ? "PASS" : "FAIL"}  ${q.fname}(${x.args.map(a => JSON.stringify(a)).join(", ")})` +
+    (x.ok ? "" : `\n      expected ${JSON.stringify(x.expected)}, got ${x.err ? x.err : JSON.stringify(x.got)}`)).join("\n");
+}
+async function runCode(){
+  const q = state.qs[state.idx];
+  $("codeRun").disabled = true; $("codeOut").textContent = "Running...";
+  let r;
+  if(state.server){
+    try{ r = await api("/api/code/run", "POST", {interviewId: state.interviewId, index: state.idx, code: $("code").value}); }
+    catch(err){ r = {error: err.message}; }
+  } else r = await runTests($("code").value, q);
+  state.codeResult = r; $("codeOut").textContent = formatTests(r, q);
+  $("codeRun").disabled = false;
+}
+$("codeRun").onclick = runCode;
+$("codeReset").onclick = () => { $("code").value = state.qs[state.idx].starter; };
+$("code").addEventListener("keydown", e => {
+  if(e.key === "Tab"){
+    e.preventDefault();
+    const t = e.target, st = t.selectionStart;
+    t.value = t.value.slice(0, st) + "  " + t.value.slice(t.selectionEnd);
+    t.selectionStart = t.selectionEnd = st + 2;
+  } else if((e.ctrlKey || e.metaKey) && e.key === "Enter"){ e.preventDefault(); runCode(); }
+});
+
+function codeEvaluate(a){
+  const q = a.q, total = q.tests.length;
+  const base = {communication:null, hits:[], miss:[], fillers:0, wpm:null, code:true, total};
+  if(!a.text) return {...base, relevance:0, technical:0, completeness:0, wc:0, passed:0, tip:"No solution submitted. Write a simple working version first, then improve it."};
+  const t = a.test || {};
+  if(t.error) return {...base, relevance:20, technical:10, completeness:10, wc:1, passed:0, error:t.error, tip:"Your code didn't run: " + t.error};
+  const passed = t.out.filter(x => x.ok).length, pct = Math.round(passed / t.out.length * 100);
+  const lines = a.text.split("\n").filter(l => l.trim() && !l.trim().startsWith("//")).length;
+  return {...base, relevance:clamp(40 + pct*0.6), technical:pct, completeness:clamp(pct*0.85 + Math.min(1, lines/8)*15), wc:1, passed,
+    tip: pct === 100 ? "All tests pass. In a real interview, also explain your time and space complexity out loud."
+                     : "Some tests fail. Check edge cases such as empty input, duplicates and negative numbers."};
+}
+function avgOf(e){ const v = [e.relevance, e.technical, e.communication, e.completeness].filter(x => x != null); return v.length ? Math.round(v.reduce((a,b)=>a+b,0)/v.length) : 0; }
+function topicOf(q){
+  const c = q.cat || "";
+  if(c.startsWith("Your skill: ")) return c.slice(12);
+  if(c.startsWith("Coding")) return "Coding";
+  if(c === "Behavioral" || c === "HR" || c === "Motivation") return "Behavioral / HR";
+  if(c === "Introduction") return "Self introduction";
+  if(c === "Company style") return "Company fit";
+  if(c === "Resume project") return "Resume projects";
+  return "Role knowledge";
+}
+
+async function evaluate(a){   // offline mode only; online scoring happens on the server
+  if(a.q.type === "code") return codeEvaluate(a);
+  return localEvaluate(a);
+}
+
+async function finish(){
+  stopCam();
+  $("loading").hidden = false;
+  if(state.server){
+    try{
+      const j = await api("/api/interviews/" + state.interviewId + "/finish", "POST",
+        {answers: state.answers.map(a => ({text: a.text, seconds: a.seconds, voiceMs: a.voiceMs}))});
+      $("loading").hidden = true;
+      renderReport(j.session, j.results, j.delta, true);
+      go("report");
+      return;
+    }catch(err){
+      console.warn("Could not score on the server, scoring locally.", err);
+      // code answers were not run locally in server mode; run them now so offline scoring still works
+      for(const a of state.answers) if(a.q.type === "code" && a.text && !a.test){
+        const full = CODE_Q.find(c => c.title === a.q.title);
+        if(full) a.test = await runTests(a.text, full);
+      }
+      state.answers.forEach(a => { if(a.q.type === "code"){ const full = CODE_Q.find(c => c.title === a.q.title); if(full) a.q = {...a.q, tests: full.tests}; } });
+    }
+  }
+  const results = [];
+  for(const a of state.answers) results.push({a, e: await evaluate(a)});
+  $("loading").hidden = true;
+  const answered = results.filter(r => r.e.wc > 0);
+  const avg = k => { const v = answered.map(r => r.e[k]).filter(x => x != null); return v.length ? Math.round(v.reduce((a,b)=>a+b,0)/v.length) : 0; };
+  const scores = {technical:avg("technical"), relevance:avg("relevance"), communication:avg("communication"), completeness:avg("completeness")};
+  // skipped questions pull the overall down
+  const coverage = state.answers.length ? answered.length / state.answers.length : 0;
+  const overall = Math.round(((scores.technical + scores.relevance + scores.communication + scores.completeness) / 4) * (0.6 + 0.4*coverage));
+  const session = {
+    date: new Date().toISOString(), company: state.target.company, role: state.target.role, type: state.target.type,
+    overall, scores, answered: answered.length, total: state.answers.length,
+    minutes: Math.max(1, Math.round((Date.now()-state.startedAt)/60000)),
+    topics: results.map(r => ({topic: topicOf(r.a.q), score: r.e.wc > 0 ? avgOf(r.e) : 0}))
+  };
+  const old = store.get("mm_sessions", []);
+  const prev = old.filter(x => x.role === session.role).pop();
+  old.push(session); store.set("mm_sessions", old);
+  renderReport(session, results, prev ? session.overall - prev.overall : null, false);
+  go("report");
+}
+
+/* ---------- 5. Report ---------- */
+function answerHtml(r){
+  if(r.a.q.type === "code")
+    return r.a.text ? `<p><b>Your code:</b></p><pre class="codeblock">${esc(r.a.text)}</pre>` : `<p><b>Your code:</b> <i>Skipped</i></p>`;
+  return `<p><b>Your answer:</b> ${r.a.text ? esc(r.a.text) : "<i>Skipped</i>"}</p>`;
+}
+function scoreLine(e){
+  return `Relevance ${e.relevance} · Technical ${e.technical} · ` + (e.communication != null ? `Communication ${e.communication} · ` : "") +
+    `Completeness ${e.completeness}` + (e.code ? ` · Tests passed ${e.passed}/${e.total}` : "");
+}
+function metric(label, v){
+  return `<div class="metric"><div class="row"><span>${label}</span><b>${v}</b></div><div class="track"><div class="fill" style="width:${v}%"></div></div></div>`;
+}
+function renderReport(s, results, delta, saved){
+  const names = {technical:"Technical accuracy", relevance:"Answer relevance", communication:"Communication", completeness:"Completeness"};
+  const entries = Object.entries(s.scores);
+  const strengths = entries.filter(([,v]) => v >= 75).map(([k]) => names[k]);
+  const weaknesses = entries.filter(([,v]) => v < 65).map(([k]) => names[k]);
+  const weakTopics = results.filter(r => r.e.wc === 0 || r.e.relevance < 60).map(r => (r.a.q.cat || "").replace(/^Your skill: /,"").replace(/\s*\(.*\)/,"") || "General").filter((v,i,a) => a.indexOf(v) === i);
+  const miss = [...new Set(results.flatMap(r => r.e.miss.slice(0,2)))].slice(0,8);
+  const wpms = results.map(r => r.e.wpm).filter(Boolean);
+  const avgWpm = wpms.length ? Math.round(wpms.reduce((a,b)=>a+b,0)/wpms.length) : null;
+  const totalFillers = results.reduce((n,r)=>n+r.e.fillers,0);
+
+  const rec = [];
+  if(weakTopics.length) rec.push(`Revise: ${weakTopics.slice(0,4).join(", ")}`);
+  if(miss.length) rec.push(`Key terms to practice: ${miss.slice(0,6).join(", ")}`);
+  if(scores_low(s,"communication")) rec.push("Practice answering out loud in 1 to 2 minutes using Situation, Action, Result");
+  if(scores_low(s,"completeness")) rec.push("Aim for 60 to 150 words per answer with one concrete example");
+  if(!rec.length) rec.push("Try a harder difficulty or a different company next");
+
+  $("reportBox").innerHTML = `
+    <h2>Your interview report</h2>
+    <p class="sub">${esc(s.company)} · ${esc(s.role)} · ${s.answered} of ${s.total} answered · ${s.minutes} min</p>
+    <div class="score-top">
+      <div class="ring" style="--p:${s.overall}"><div><div><b>${s.overall}</b><br><span>overall</span></div></div></div>
+      <div>${entries.map(([k,v]) => metric(names[k], v)).join("")}
+      ${delta!==null ? `<p class="sub">${delta>=0?"Up":"Down"} ${Math.abs(delta)} points from your last ${esc(s.role)} session.</p>` : ""}</div>
+    </div>
+    <div class="cols">
+      <div class="box"><h3 class="good">Strengths</h3><ul>${(strengths.length?strengths:["Keep practicing to build strengths"]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="box"><h3 class="badc">Needs work</h3><ul>${(weaknesses.length?weaknesses:["Nothing major. Aim higher."]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="box"><h3 class="warnc">Next steps</h3><ul>${rec.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    </div>
+    ${avgWpm||totalFillers ? `<p class="sub">Speech check: ${avgWpm?`pace about ${avgWpm} words per minute (aim for 120 to 160). `:""}${totalFillers} filler word${totalFillers===1?"":"s"} detected.</p>`:""}
+    <h3>Question by question</h3>
+    ${results.map((r,i) => `
+      <details>
+        <summary>${i+1}. ${esc(r.a.q.type === "code" ? "Coding: " + r.a.q.title : r.a.q.q)}</summary>
+        ${answerHtml(r)}
+        <p>${scoreLine(r.e)}</p>
+        <p>${r.e.hits.map(k=>`<span class="tag hit">${esc(k)}</span>`).join("")}${r.e.miss.map(k=>`<span class="tag miss">${esc(k)}</span>`).join("")}</p>
+        <p><b>Tip:</b> ${esc(r.e.tip)}</p>
+      </details>`).join("")}
+    <p class="hint">Scores come from keyword coverage, length, structure and filler words${results.some(r => r.e.ai) ? " plus AI review" : ""}. ${saved ? "This session was saved to your account." : "Offline mode: this session is saved only in this browser. Start the server and log in to keep it with your account."}</p>
+    <div class="actions">
+      <button class="ghost" data-go="dash">View progress</button>
+      <button class="primary" data-go="target">Practice again</button>
+    </div>`;
+}
+function scores_low(s,k){ return s.scores[k] < 65; }
+
+/* ---------- 6. Dashboard ---------- */
+async function getHistory(){
+  if(online && token){
+    try{ return (await api("/api/sessions")).sessions; }
+    catch(err){ if(err.status === 401){ setToken(null); $("navOut").hidden = true; } }
+  }
+  return store.get("mm_sessions", []);
+}
+async function renderDash(){
+  $("dashBox").innerHTML = `<p class="sub">Loading...</p>`;
+  const hist = await getHistory();
+  if(!hist.length){
+    $("dashBox").innerHTML = `<p class="sub">No sessions yet. Finish your first mock interview to see your progress here.</p>`;
+    return;
+  }
+  const last = hist.slice(-12);
+  const best = Math.max(...hist.map(h => h.overall));
+  const avg = Math.round(hist.reduce((s,h)=>s+h.overall,0)/hist.length);
+  const keys = [["technical","Technical accuracy"],["relevance","Answer relevance"],["communication","Communication"],["completeness","Completeness"]];
+  const metrics = keys.map(([k,l]) => metric(l, Math.round(hist.reduce((s,h)=>s+((h.scores&&h.scores[k])||0),0)/hist.length))).join("");
+  const tmap = {};
+  hist.forEach(h => (h.topics||[]).forEach(t => { (tmap[t.topic] = tmap[t.topic] || []).push(t.score); }));
+  const topics = Object.entries(tmap).map(([k,v]) => [k, Math.round(v.reduce((a,b)=>a+b,0)/v.length), v.length]).sort((a,b) => a[1]-b[1]);
+  const weak = topics.filter(t => t[1] < 70).slice(0,3).map(t => t[0]);
+  $("dashBox").innerHTML = `
+    <p class="sub">${hist.length} session${hist.length===1?"":"s"} · average ${avg} · best ${best}</p>
+    <div class="hist" role="img" aria-label="Overall score for your last ${last.length} sessions">
+      ${last.map(h => `<div class="b"><span>${h.overall}</span><div style="height:${h.overall}%"></div></div>`).join("")}
+    </div>
+    ${weak.length ? `<div class="focus"><b>Focus next on:</b> ${weak.map(esc).join(", ")}</div>` : ""}
+    <div class="two">
+      <div class="box"><h3>Average by skill area</h3>${topics.length ? topics.map(t => metric(`${esc(t[0])} <small>(${t[2]})</small>`, t[1])).join("") : `<p class="sub">Topic scores appear after your next session.</p>`}</div>
+      <div class="box"><h3>Average by score type</h3>${metrics}</div>
+    </div>
+    <table><thead><tr><th>Date</th><th>Company</th><th>Role</th><th>Score</th></tr></thead><tbody>
+      ${hist.slice().reverse().map(h => `<tr><td>${new Date(h.date).toLocaleDateString()}</td><td>${esc(h.company)}</td><td>${esc(h.role)}</td><td>${h.overall}</td></tr>`).join("")}
+    </tbody></table>`;
+}
+$("clearHist").onclick = async () => {
+  if(!confirm("Delete all saved sessions?")) return;
+  if(online && token){ try{ await api("/api/sessions", "DELETE"); }catch(e){ alert(e.message); return; } }
+  store.set("mm_sessions", []); renderDash();
+};
+
+/* ---------- Init ---------- */
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("themeBtn").textContent = t === "light" ? "Dark mode" : "Light mode";
+  store.set("mm_theme", t);
+}
+$("themeBtn").onclick = () => applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+applyTheme(store.get("mm_theme", "dark"));
+renderStepper(0);
+setAuthMode("register");
+(async function init(){
+  await checkBackend();
+  $("backendNote").textContent = online
+    ? "Connected to the MockMate server. Your account, profile and results are saved there."
+    : "Server not reachable: running in offline demo mode (data stays in this browser). Start it with: node server/server.js";
+  $("backendNote").className = "hint " + (online ? "ok" : "warn");
+  if(online && token){
+    try{
+      const j = await api("/api/me");
+      state.user = j.user; applyProfile(j.profile); showUser();
+      $("uName").value = j.user.name; $("uEmail").value = j.user.email;
+      $("loginTitle").textContent = "Welcome back, " + j.user.name.split(" ")[0];
+      go(j.profile ? "target" : "profile");
+    }catch(err){ setToken(null); setAuthMode("login"); }
+  } else if(online && saved){ setAuthMode("login"); }
+})();
+
+</script>
+</body>
+</html>
